@@ -22,7 +22,7 @@ def writeNoClobber(record, filepath):
 
 
 def instantiateRecord():
-    from uchicagoldrRecords.record.recordFields import RecordFields
+    from uchicagoldrrecords.record.recordFields import RecordFields
     record = {}
     for entry in RecordFields():
         record[entry] = ""

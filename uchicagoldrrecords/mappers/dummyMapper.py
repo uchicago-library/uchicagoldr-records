@@ -1,5 +1,5 @@
 def DummyMapper():
-    from uchicagoldrRecords.record.recordFields import RecordFields
+    from uchicagoldrrecords.record.recordFields import RecordFields
 
     dummyMap = []
     for entry in RecordFields():
