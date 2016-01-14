@@ -97,7 +97,7 @@ class Record(object):
         assert(self.validate_config())
         new_dict = {}
         for row in self.get_config():
-            key = row['Field Name']
+            key = self._dotted_to_list(row['Field Name'])
             dataType = row['Value Type']
             if dataType not in self.allowed_types:
                 raise ValueError("The following row has an invalid " +
@@ -119,7 +119,8 @@ class Record(object):
                             raise ValueError("A default value is malformed")
                     else:
                         value = row['Default Value']
-                new_dict[key] = value
+#                new_dict[key] = value
+                self.set_value_from_key_list(key, value, start=new_dict)
         self.set_dictionary(new_dict)
 
     def validate(self):
@@ -128,18 +129,15 @@ class Record(object):
         recordDict = self.get_dictionary()
         for row in self.get_config():
             if row['Validation'] != "":
-                key = row['Field Name']
-                value = recordDict[key]
+                key = self._dotted_to_list(row['Field Name'])
+                value = self.get_value_from_key_list(key)
                 if type(value) != str:
                     value = str(value)
                 regex = row['Validation']
-                print(key + ": " + regex + " " + str(type(regex)) + " " +str(type(value)))
                 if not match(regex, value):
-                    print("Failed")
+                    print(value+" doesn't match "+regex)
                     problemFields.append(row['Field Name'])
-                else:
-                    print("Good")
-        if len(problemFields > 0):
+        if len(problemFields) > 0:
             return (False, problemFields)
         else:
             return (True, problemFields)
@@ -179,10 +177,10 @@ class Record(object):
             start = self.get_dictionary()
         nextKey = keyList.pop(0)
         if len(keyList) == 0:
-            return(start, start[nextKey])
+            return start[nextKey]
         else:
             assert(nextKey in start)
-            return self.navigate_key_list(keyList, start=start[nextKey])
+            return self.get_value_from_key_list(keyList, start=start[nextKey])
 
     def set_value_from_key_list(self, keyList, new_value, start=None):
         if start is None:
@@ -193,7 +191,24 @@ class Record(object):
             return True
         else:
             assert(nextKey in start)
-            self.navigate_key_list(keyList, new_value, start=start[nextKey])
+            self.set_value_from_key_list(keyList, new_value, start=start[nextKey])
 
     def blank_value_from_key_list(self, keyList, start=None):
         return set_value_from_key_list(keyList, "", start=start)
+
+    def get_value_from_dotted_key(self, dotted_key, start=None):
+        return get_value_from_key_list(self._dotted_to_list(dotted_key), start=start)
+
+    def set_value_from_dotted_key(self, dotted_key, start=None):
+        return set_value_from_key_list(self._dotted_to_list(dotted_key), start=start)
+
+    def blank_value_from_dotted_key(self, dotted_key, start=None):
+        return blank_value_from_key_list(self._dotted_to_list(dotted_key), start=start)
+
+    def _dotted_to_list(self, inStr):
+        assert(isinstance(inStr,str))
+        return inStr.split(".")
+
+    def _list_to_dotted(self, inList):
+        assert(isinstance(inList,list))
+        return ".".join(inList)
