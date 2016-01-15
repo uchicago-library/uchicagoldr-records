@@ -1,5 +1,6 @@
 from os.path import isabs
 from json import load
+from re import match
 
 from uchicagoldrrecords.record import Record
 
@@ -49,3 +50,52 @@ class Reader(object):
                 return newRecord
             else:
                 raise AssertionError
+
+    def _strings_dict_to_data_types(self, input_dict):
+        output_dict = {}
+        bool_affirmatives = ['y', 'yes', 'true', '1', 't']
+        bool_negatives = ['n', 'no', 'false', '0', 'f']
+        for entry in input_dict:
+            value = input_dict[entry]
+            if isinstance(value, dict):
+                output_dict[entry] = self._strings_dict_to_data_types(entry)
+                continue
+            if not isinstance(value, str):
+                raise TypeError("{} is not a string!".format(str(value)))
+            if match('^[0-9]+$', value):
+                try:
+                    value = int(value)
+                    output_dict[entry] = value
+                    continue
+                except:
+                    pass
+            if match('^[0-9]+\.[0-9]+$', value):
+                try:
+                    value = float(value)
+                    output_dict[entry] = value
+                    continue
+                except:
+                    pass
+            if match("^\[.*\]$", value):
+                try:
+                    value = list(value)
+                    output_dict[entry] = value
+                    continue
+                except:
+                    pass
+            if value.lower() in bool_affirmatives:
+                try:
+                    value = True
+                    output_dict[entry] = value
+                    continue
+                except:
+                    pass
+            if value.lower() in bool_negatives:
+                try:
+                    value = False
+                    output_dict[entry] = value
+                    continue
+                except:
+                    pass
+            output_dict[entry] = value
+        return output_dict

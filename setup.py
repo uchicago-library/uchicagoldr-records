@@ -5,7 +5,7 @@ setup(
     version = '1.0.0',
     author = "Brian Balsamo",
     author_email = "balsamo@uchicago.edu",
-    packages = ['uchicagoldrrecords','uchicagoldrrecords.fields','uchicagoldrrecords.mappers','uchicagoldrrecords.readers','uchicagoldrrecords.record'],
+    packages = ['uchicagoldrrecords'],
     description = "A set of classes for creating new accession reocrds for the repository",
     keywords = ["uchicago","repository","file-level","processing"],
     classifiers = [

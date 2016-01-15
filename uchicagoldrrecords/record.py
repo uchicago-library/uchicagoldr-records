@@ -92,7 +92,7 @@ class Record(object):
             except Exception as e:
                 return (False, e)
 
-    def populate(self):
+    def populate(self, no_defaults=False):
         assert(self.get_config())
         assert(self.validate_config())
         new_dict = {}
@@ -104,6 +104,11 @@ class Record(object):
                                  "Value Type!\n{}".format(row))
             else:
                 value = eval(dataType+"()")
+
+                if no_defaults:
+                    self.set_value_from_key_list(key, value, start=new_dict)
+                    continue
+
                 if row['Default Value'] != "":
                     if type(value) != str:
                         try:
@@ -198,8 +203,9 @@ class Record(object):
         return self.get_value_from_key_list(self._dotted_to_list(dotted_key),
                                             start=start)
 
-    def set_value_from_dotted_key(self, dotted_key, start=None):
+    def set_value_from_dotted_key(self, dotted_key, new_value, start=None):
         return self.set_value_from_key_list(self._dotted_to_list(dotted_key),
+                                            new_value=new_value,
                                             start=start)
 
     def blank_value_from_dotted_key(self, dotted_key, start=None):
