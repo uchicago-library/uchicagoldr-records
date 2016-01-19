@@ -1,15 +1,22 @@
+from os import getcwd
+from os.path import join, isabs
+
 from uchicagoldrrecords.reader import Reader
 from uchicagoldrrecords.record import Record
 
 
 class DigitalAcquisitionRecordReader(Reader):
-    keyMap = [("Accession Number"),
-              ("Collection Title"),
-              ("Existing Digital Collection"),
-              ("Addenda"),
+    keyMap = [("Accession Number", None),
+              ("Collection Title", None),
+              ("Existing Digital Collection", None),
+              ("Existing Physical Collection", None),
+              ("EADID", None),
+              ("Physical Collection Has Finding Aid", None)
+              ("Addenda", None),
               ("Date sent to DAS", "Sent to DAS On"),
-              ("Type"),
-              ("Origin"),
+              ("Type", None),
+              ("P/R/C", "PRC"),
+              ("Origin", None),
               ("Donor First Name", "Donor.First Name"),
               ("Donor Last Name", "Donor.Last Name"),
               ("Donor Address", "Donor.Address"),
@@ -23,23 +30,19 @@ class DigitalAcquisitionRecordReader(Reader):
               ("Receipt Letter", "Receipt Letter Required"),
               ("Send Digital Inventory to Donor", "Send Inventory Required"),
               ("Gift Acknowledgement or Deed of Gift", "Gift Acknowledgement Required"),
-              ("Access"),
+              ("Restrictions", None),
+              ("Restriction Comments", None),
+              ("Access", "Access Description"),
+              ("Physical Media", None),
               ("Linear Feet", "Total Physical Size.Linear Feet"),
               ("Boxes", "Total Physical Size.Boxes"),
               ("Volumes", "Total Physical Size.Volumes"),
-              ("Restrictions"),
-              ("Restriction Comments", "Restriction Comment"),
               ("Description", "Summary"),
-              ("Administrative Comments"),
-              ("Received By"),
+              ("Administrative Comments", None),
+              ("Received By", None),
               ("Date Received", "Files Received Date"),
-              ("DAS Received By"),
-              ("Digital Location"),
-              ("P/R/C", "PRC"),
-              ("Physical Media"),
-              ("Existing Physical Collection"),
-              ("EADID"),
-              ("Physical Collection Has Finding Aid")
+              ("DAS Received By", None),
+              ("Digital Location", None),
               ]
 
     keyList = [x[0] for x in keyMap]
@@ -107,10 +110,35 @@ class DigitalAcquisitionRecordReader(Reader):
             for mapping in self.keyMap:
                 if mapping[0] == entry:
                     mapper = mapping
-            if len(mapper) > 1:
+
+            # Dump values whose mapping is a blank string
+            if mapper[1] is not None:
+                if mapper[1] == "":
+                    continue
+
                 new_record.set_value_from_dotted_key(mapper[1],
                                                      internal_dict[entry])
             else:
                 new_record.set_value_from_dotted_key(mapper[0],
                                                      internal_dict[entry])
         return new_record
+
+    def write_record_template(self,outpath=None, header=None):
+        if outpath is None:
+            outpath = join(getcwd(),'Digital_Acquisitions_Record_Template.txt')
+
+        if header is None:
+            header = "University of Chicago Library\n" + \
+                     "Special Collections Research Center\n" + \
+                     "Archives and Manuscripts Accessions\n" + \
+                     "\n" + \
+                     "Digital Acquisition Form 2015-2016\n\n"
+
+        assert(isabs(outpath))
+        assert(isinstance(header, str))
+
+        with open(outpath, 'w') as f:
+            f.write(header)
+            for entry in self.keyList:
+                f.write("{}: \n".format(entry))
+        return outpath
