@@ -24,6 +24,7 @@ class Record(object):
             self.config_location = \
                 config['records']['record_configuration_path']
         self.config = None
+        self.state = None
 
     def set_directory(self, new_directory):
         assert(isinstance(new_directory, Directory))
@@ -219,3 +220,35 @@ class Record(object):
     def _list_to_dotted(self, inList):
         assert(isinstance(inList, list))
         return ".".join(inList)
+
+    def get_state(self):
+        return self.state
+
+    def set_state(self, new_state):
+        assert(isinstance(new_state, str) or new_state is None)
+        self.state = new_state
+
+    def find_state(self):
+        assert(self.validate_config())
+        readyForAccession = True
+        complete = True
+        for entry in config:
+            if entry['Required for Accession']:
+                if not match(entry['Validation'],
+                             self.get_value_from_dotted_key(
+                                 entry['Field Name'])
+                             ):
+                    readyForAccession = False
+                    complete = False
+            if entry['Required for Completion']:
+                if not match(entry['Validation'],
+                             self.get_value_from_dotted_key(
+                                 entry['Field Name'])
+                             ):
+                    complete = False
+
+        if readyForAccession is True and complete is True:
+            return "Complete"
+        if readyForAccession is True:
+            return "Ready for Accession"
+        return "In progress"
